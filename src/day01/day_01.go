@@ -7,9 +7,17 @@ import (
 	"unicode"
 	"strconv"
 	"strings"
+	"sort"
 )
 
+type Occurrence struct {
+	index int
+	value int
+	label string
+}
+
 func ConvertSpelledDigits(line string) string {
+	var occurrences []Occurrence
 	spelledDigits := [9]string{		
 		"one",
 		"two",
@@ -23,7 +31,21 @@ func ConvertSpelledDigits(line string) string {
 	}
 
 	for i, digit := range spelledDigits {
-		line = strings.Replace(line, digit, fmt.Sprint(i+1), -1)
+		index := strings.Index(line, digit)
+		if index >= 0 {
+			occurrences = append(
+				occurrences,
+				Occurrence{value: i+1, label: digit, index: index},
+			)
+		}
+	}
+
+	sort.Slice(occurrences, func(i, j int) bool {
+		return occurrences[i].index < occurrences[j].index
+	})
+
+	for _, oc := range occurrences {
+		line = strings.Replace(line, oc.label, fmt.Sprint(oc.value), -1)
 	}
 
 	return line
@@ -67,9 +89,10 @@ func ReadLines(path string) []string {
 
 func main() {
 	var sum int
-	lines := ReadLines("./day01/data/input2.txt")
+	lines := ReadLines("./day01/data/input2_2.txt")
 	for _, line := range lines {
-		sum += GetCalibration(string(line))
+		convertedLine := ConvertSpelledDigits(string(line))
+		sum += GetCalibration(convertedLine)
 	}
 
 	fmt.Printf("Calibration sum is %d\n", sum)
