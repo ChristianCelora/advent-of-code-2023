@@ -24,9 +24,6 @@ go run day_xx/day_xx.go
 
 ## Run Tests
 
-To run tests run the CLi command
-
 ```sh
-go test -v <package>
-go test -v ./internal # Example of testing the internal package
+go test -v ./dayxx
 ```
