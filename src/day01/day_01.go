@@ -1,9 +1,8 @@
 package main
 
 import (
-	"bufio"
+	"adventcode/reader"
 	"fmt"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -88,25 +87,9 @@ func GetCalibration(line string) int {
 	return calibration
 }
 
-func ReadLines(path string) []string {
-	var lines []string
-	file, err := os.Open(path)
-	if err != nil {
-		fmt.Printf("error in buffer: %s", err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	return lines
-}
-
 func main() {
 	var sum int
-	lines := ReadLines("./day01/data/input2_2.txt")
+	lines := reader.ReadLines("./day01/data/input2_2.txt")
 	for _, line := range lines {
 		convertedLine := ExtractDigits(string(line))
 		sum += GetCalibration(convertedLine) // just take first and last char of string
