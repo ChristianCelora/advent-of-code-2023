@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
-	"fmt"
 	"bufio"
-	"unicode"
+	"fmt"
+	"os"
+	"sort"
 	"strconv"
 	"strings"
-	"sort"
+	"unicode"
 )
 
 type Occurrence struct {
@@ -16,9 +16,9 @@ type Occurrence struct {
 	label string
 }
 
-func ConvertSpelledDigits(line string) string {
+func ExtractDigits(line string) string {
 	var occurrences []Occurrence
-	spelledDigits := [9]string{		
+	spelledDigits := [9]string{
 		"one",
 		"two",
 		"three",
@@ -30,12 +30,28 @@ func ConvertSpelledDigits(line string) string {
 		"nine",
 	}
 
+	for i, c := range line {
+		if unicode.IsDigit(c) {
+			occurrences = append(
+				occurrences,
+				Occurrence{value: int(c - '0'), label: "", index: i},
+			)
+		}
+	}
+
 	for i, digit := range spelledDigits {
 		index := strings.Index(line, digit)
 		if index >= 0 {
 			occurrences = append(
 				occurrences,
-				Occurrence{value: i+1, label: digit, index: index},
+				Occurrence{value: i + 1, label: digit, index: index},
+			)
+		}
+		lastIndex := strings.LastIndex(line, digit)
+		if lastIndex >= 0 && lastIndex != index {
+			occurrences = append(
+				occurrences,
+				Occurrence{value: i + 1, label: digit, index: lastIndex},
 			)
 		}
 	}
@@ -44,11 +60,12 @@ func ConvertSpelledDigits(line string) string {
 		return occurrences[i].index < occurrences[j].index
 	})
 
+	var final_line string
 	for _, oc := range occurrences {
-		line = strings.Replace(line, oc.label, fmt.Sprint(oc.value), -1)
+		final_line += fmt.Sprint(oc.value)
 	}
 
-	return line
+	return final_line
 }
 
 func GetCalibration(line string) int {
@@ -74,15 +91,15 @@ func GetCalibration(line string) int {
 func ReadLines(path string) []string {
 	var lines []string
 	file, err := os.Open(path)
-    if err != nil {
-        fmt.Printf("error in buffer: %s", err)
-    }
-    defer file.Close()
+	if err != nil {
+		fmt.Printf("error in buffer: %s", err)
+	}
+	defer file.Close()
 
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
-    }
+	}
 
 	return lines
 }
@@ -91,8 +108,8 @@ func main() {
 	var sum int
 	lines := ReadLines("./day01/data/input2_2.txt")
 	for _, line := range lines {
-		convertedLine := ConvertSpelledDigits(string(line))
-		sum += GetCalibration(convertedLine)
+		convertedLine := ExtractDigits(string(line))
+		sum += GetCalibration(convertedLine) // just take first and last char of string
 	}
 
 	fmt.Printf("Calibration sum is %d\n", sum)
