@@ -35,7 +35,6 @@ func FindSymbols(mat *[MATRIX_SIZE][MATRIX_SIZE]rune) []Symbol {
 	for i, row := range mat {
 		for j, cell := range row {
 			s := string(cell)
-			// if regexp.MatchString("[\*\&\-\/\@\#\$\=\%\+]", cell) {
 			if s == "*" ||
 				s == "&" ||
 				s == "-" ||
@@ -51,7 +50,6 @@ func FindSymbols(mat *[MATRIX_SIZE][MATRIX_SIZE]rune) []Symbol {
 					x:      i,
 					y:      j,
 				}
-				// fmt.Printf("sym found: %s, %d, %d\n", string(s.symbol), s.x, s.y)
 				res = append(res, s)
 			}
 		}
@@ -59,12 +57,18 @@ func FindSymbols(mat *[MATRIX_SIZE][MATRIX_SIZE]rune) []Symbol {
 	return res
 }
 
-func GetEngineParts(mat *[MATRIX_SIZE][MATRIX_SIZE]rune, symbols []Symbol) []int {
-	var res []int
+type GearParts struct {
+	parts       []int
+	gear_ratios []int
+}
+
+func GetEngineParts(mat *[MATRIX_SIZE][MATRIX_SIZE]rune, symbols []Symbol) GearParts {
+	var res GearParts
 	var cell_x, cell_y int
 	directions := [3]int{-1, 0, 1}
 	for k := 0; k <= len(symbols)-1; k++ {
 		s := symbols[k]
+		var numbers []int
 		for i := 0; i <= len(directions)-1; i++ {
 			for j := 0; j <= len(directions)-1; j++ {
 				delta_x := directions[i]
@@ -85,9 +89,17 @@ func GetEngineParts(mat *[MATRIX_SIZE][MATRIX_SIZE]rune, symbols []Symbol) []int
 				if unicode.IsDigit(mat[cell_x][cell_y]) {
 					// find number
 					number := ExtractFullNumber(mat, cell_x, cell_y)
-					res = append(res, number)
+					numbers = append(numbers, number)
+					res.parts = append(res.parts, number)
 				}
 			}
+		}
+		if len(numbers) == 2 {
+			gear_ratio := 1
+			for _, gr := range numbers {
+				gear_ratio = gear_ratio * gr
+			}
+			res.gear_ratios = append(res.gear_ratios, gear_ratio)
 		}
 	}
 
@@ -123,7 +135,7 @@ func ExtractFullNumber(mat *[MATRIX_SIZE][MATRIX_SIZE]rune, x int, y int) int {
 }
 
 func main() {
-	var sum int
+	var sum, sum_gear_ratio int
 	lines := reader.ReadLines("./day03/data/input1_2.txt")
 	matrix := CreateMatrix()
 	for i, line := range lines {
@@ -131,10 +143,17 @@ func main() {
 	}
 	symbols := FindSymbols(matrix)
 	fmt.Printf("symbols found: %d\n", len(symbols))
-	parts := GetEngineParts(matrix, symbols)
-	for _, part := range parts {
+
+	// part 1
+	gear_data := GetEngineParts(matrix, symbols)
+	for _, part := range gear_data.parts {
 		sum = sum + part
 	}
-
 	fmt.Printf("The sum of the parts is %d\n", sum)
+
+	// part 2
+	for _, gr := range gear_data.gear_ratios {
+		sum_gear_ratio = sum_gear_ratio + gr
+	}
+	fmt.Printf("The sum of the gear ratios is %d\n", sum_gear_ratio)
 }
