@@ -34,26 +34,26 @@ func TestReadSeeds(t *testing.T) {
 func TestAlmanacMapAddMapValues(t *testing.T) {
 	tests := []struct {
 		input_lines    []string
-		expected_value map[int]int
+		expected_value []MapRange
 	}{
 		{
 			input_lines: []string{
 				"50 98 2",
-				"52 50 10",
+				"52 50 48",
 			},
-			expected_value: map[int]int{
-				98: 50,
-				99: 51,
-				50: 52,
-				51: 53,
-				52: 54,
-				53: 55,
-				54: 56,
-				55: 57,
-				56: 58,
-				57: 59,
-				58: 60,
-				59: 61,
+			expected_value: []MapRange{
+				{
+					input_from:  98,
+					input_to:    99,
+					output_from: 50,
+					output_to:   51,
+				},
+				{
+					input_from:  50,
+					input_to:    97,
+					output_from: 52,
+					output_to:   99,
+				},
 			},
 		},
 		{
@@ -62,77 +62,139 @@ func TestAlmanacMapAddMapValues(t *testing.T) {
 				"37 52 2",
 				"39 0 15",
 			},
-			expected_value: map[int]int{
-				0:  39,
-				1:  40,
-				2:  41,
-				3:  42,
-				4:  43,
-				5:  44,
-				6:  45,
-				7:  46,
-				8:  47,
-				9:  48,
-				10: 49,
-				11: 50,
-				12: 51,
-				13: 52,
-				14: 53,
-				15: 0,
-				16: 1,
-				17: 2,
-				18: 3,
-				19: 4,
-				20: 5,
-				21: 6,
-				22: 7,
-				23: 8,
-				24: 9,
-				25: 10,
-				26: 11,
-				27: 12,
-				28: 13,
-				29: 14,
-				30: 15,
-				31: 16,
-				32: 17,
-				33: 18,
-				34: 19,
-				35: 20,
-				36: 21,
-				37: 22,
-				38: 23,
-				39: 24,
-				40: 25,
-				41: 26,
-				42: 27,
-				43: 28,
-				44: 29,
-				45: 30,
-				46: 31,
-				47: 32,
-				48: 33,
-				49: 34,
-				50: 35,
-				51: 36,
-				52: 37,
-				53: 38,
+			expected_value: []MapRange{
+				{
+					input_from:  15,
+					input_to:    51,
+					output_from: 0,
+					output_to:   36,
+				},
+				{
+					input_from:  52,
+					input_to:    53,
+					output_from: 37,
+					output_to:   38,
+				},
+				{
+					input_from:  0,
+					input_to:    14,
+					output_from: 39,
+					output_to:   53,
+				},
 			},
 		},
 	}
 
 	for _, test := range tests {
 		almanac_map := AlmanacMap{
-			name:   "test",
-			values: make(map[int]int),
+			name: "test",
 		}
 		for _, line := range test.input_lines {
 			almanac_map.addMapValues(line)
 		}
 		for key, expected_v := range test.expected_value {
-			if expected_v != almanac_map.values[key] {
+			if expected_v.input_from != almanac_map.values[key].input_from ||
+				expected_v.input_to != almanac_map.values[key].input_to ||
+				expected_v.output_from != almanac_map.values[key].output_from ||
+				expected_v.output_to != almanac_map.values[key].output_to {
 				t.Fatalf("map not correct for key %d. Expected %v map. actual %v for line %v", key, test.expected_value, almanac_map.values, test.input_lines)
 			}
+		}
+	}
+}
+
+func TestMapRangeTransform(t *testing.T) {
+	tests := []struct {
+		input_map      MapRange
+		input_value    int
+		expected_value int
+	}{
+		{
+			input_map: MapRange{
+				input_from:  50,
+				input_to:    97,
+				output_from: 52,
+				output_to:   99,
+			},
+			input_value:    14,
+			expected_value: 14,
+		},
+		{
+			input_map: MapRange{
+				input_from:  50,
+				input_to:    51,
+				output_from: 87,
+				output_to:   88,
+			},
+			input_value:    99,
+			expected_value: 99,
+		},
+		{
+			input_map: MapRange{
+				input_from:  50,
+				input_to:    51,
+				output_from: 98,
+				output_to:   99,
+			},
+			input_value:    50,
+			expected_value: 98,
+		},
+		{
+			input_map: MapRange{
+				input_from:  50,
+				input_to:    51,
+				output_from: 98,
+				output_to:   99,
+			},
+			input_value:    51,
+			expected_value: 99,
+		},
+		{
+			input_map: MapRange{
+				input_from:  50,
+				input_to:    97,
+				output_from: 52,
+				output_to:   99,
+			},
+			input_value:    60,
+			expected_value: 62,
+		},
+		{
+			input_map: MapRange{
+				input_from:  53,
+				input_to:    61,
+				output_from: 49,
+				output_to:   57,
+			},
+			input_value:    53,
+			expected_value: 49,
+		},
+		{
+			input_map: MapRange{
+				input_from:  53,
+				input_to:    61,
+				output_from: 49,
+				output_to:   57,
+			},
+			input_value:    61,
+			expected_value: 57,
+		},
+		{
+			input_map: MapRange{
+				input_from:  53,
+				input_to:    61,
+				output_from: 49,
+				output_to:   57,
+			},
+			input_value:    60,
+			expected_value: 56,
+		},
+	}
+
+	for _, test := range tests {
+		converted_value := test.input_map.transform(test.input_value)
+		if converted_value != test.expected_value {
+			t.Fatalf("seed not correct. Expected %d value. actual %d for input %d", test.expected_value, converted_value, test.input_value)
 		}
 	}
 }
