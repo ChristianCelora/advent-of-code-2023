@@ -16,6 +16,27 @@ func ReadSeeds(line string) []int {
 	return SplitSpace(split_line[1])
 }
 
+type SeedsRange struct {
+	from int
+	to   int
+}
+
+func ReadMultipleSeeds(line string) []SeedsRange {
+	var res []SeedsRange
+	seeds := ReadSeeds(line)
+	for i := 0; i < len(seeds); i = i + 2 {
+		if i+1 >= len(seeds) {
+			panic("wrong read mutliple seeds line")
+		}
+		res = append(res, SeedsRange{
+			from: seeds[i],
+			to:   seeds[i] + seeds[i+1] - 1,
+		})
+
+	}
+	return res
+}
+
 type MapRange struct {
 	input_from  int
 	input_to    int
@@ -88,7 +109,10 @@ func main() {
 	var almanac_map_name string
 	var min_location int
 	lines := reader.ReadLines("./day05/data/input1_2.txt")
-	seeds := ReadSeeds(lines[0])
+	// step 1
+	// seeds := ReadSeeds(lines[0])
+	// step 2
+	seeds := ReadMultipleSeeds(lines[0])
 
 	for _, line := range lines[1:] {
 		if strings.TrimSpace(line) == "" {
@@ -112,24 +136,26 @@ func main() {
 
 	min_location = math.MaxInt32
 	for _, seed := range seeds {
-		fmt.Printf("\n\n seed %d\n", seed)
+		for k := seed.from; k < seed.to; k++ {
+			// fmt.Printf("\n\n seed %d\n", k)
 
-		seed_transformed := seed
-		for i := 0; i < len(almanac_maps); i++ {
-			almanac_map := almanac_maps[i]
-			for j := 0; j < len(almanac_map.values); j++ {
-				map_range := almanac_map.values[j]
-				if seed_transformed >= map_range.input_from && seed_transformed <= map_range.input_to {
-					output := map_range.transform(seed_transformed)
-					fmt.Printf("map %s, input: %d, output: %d\n", almanac_map.name, seed_transformed, output)
-					seed_transformed = output
-					break
+			seed_transformed := k
+			for i := 0; i < len(almanac_maps); i++ {
+				almanac_map := almanac_maps[i]
+				for j := 0; j < len(almanac_map.values); j++ {
+					map_range := almanac_map.values[j]
+					if seed_transformed >= map_range.input_from && seed_transformed <= map_range.input_to {
+						output := map_range.transform(seed_transformed)
+						// fmt.Printf("map %s, input: %d, output: %d\n", almanac_map.name, seed_transformed, output)
+						seed_transformed = output
+						break
+					}
 				}
 			}
-		}
 
-		if seed_transformed < min_location {
-			min_location = seed_transformed
+			if seed_transformed < min_location {
+				min_location = seed_transformed
+			}
 		}
 	}
 

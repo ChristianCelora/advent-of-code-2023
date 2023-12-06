@@ -31,6 +31,51 @@ func TestReadSeeds(t *testing.T) {
 	}
 }
 
+func TestReadMultipleSeeds(t *testing.T) {
+	tests := []struct {
+		input_line     string
+		expected_value []SeedsRange
+	}{
+		{
+			input_line: "seeds: 79 14 55 13",
+			expected_value: []SeedsRange{
+				{
+					from: 79,
+					to:   92,
+				},
+				{
+					from: 55,
+					to:   67,
+				},
+			},
+		},
+		{
+			input_line: "seeds: 1 2 3 4",
+			expected_value: []SeedsRange{
+				{
+					from: 1,
+					to:   2,
+				},
+				{
+					from: 3,
+					to:   6,
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		seeds := ReadMultipleSeeds(test.input_line)
+		// t.Logf("expected %v, actual %v\n", test.expected_value, seeds)
+		for i, expected_v := range test.expected_value {
+			if expected_v.from != seeds[i].from ||
+				expected_v.to != seeds[i].to {
+				t.Fatalf("seed not correct. Expected %v value. actual %v for line %s", test.expected_value, seeds, test.input_line)
+			}
+		}
+	}
+}
+
 func TestAlmanacMapAddMapValues(t *testing.T) {
 	tests := []struct {
 		input_lines    []string
