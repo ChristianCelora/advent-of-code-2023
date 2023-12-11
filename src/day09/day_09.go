@@ -49,7 +49,7 @@ func GetSequenceFromLine(line string) []int {
 func main() {
 	var sequence, next_sequence []int
 	var sequence_history [][]int
-	var total_elements int
+	var total_elements, total_elements_begin int
 	// var total_sum int
 	lines := reader.ReadLines("./day09/data/input1_2.txt")
 
@@ -66,9 +66,9 @@ func main() {
 				break
 			}
 		}
-
 		fmt.Printf("found the sequence 0\n")
 
+		// step 1
 		final_element := 0
 		for i := len(sequence_history) - 1; i >= 0; i-- {
 			s := sequence_history[i]
@@ -76,6 +76,16 @@ func main() {
 		}
 		fmt.Printf("next element is %d\n", final_element)
 		total_elements += final_element
+
+		// step 2
+		begin_element := 0
+		for i := len(sequence_history) - 1; i >= 0; i-- {
+			s := sequence_history[i]
+			begin_element = s[0] - begin_element
+		}
+		fmt.Printf("beginning element is %d\n", begin_element)
+		total_elements_begin += begin_element
 	}
 	fmt.Printf("The sum of the final elements is %d\n", total_elements)
+	fmt.Printf("The sum of the beginning elements is %d\n", total_elements_begin)
 }
