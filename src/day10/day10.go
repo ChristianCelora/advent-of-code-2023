@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	MATRIX_SIZE = 5
-	// MATRIX_SIZE = 140
+	// MATRIX_SIZE = 5 // tests
+	MATRIX_SIZE = 140
 )
 
 type Pipe struct {
@@ -34,8 +34,8 @@ func GetMatrixFromLines(lines []string) [MATRIX_SIZE][MATRIX_SIZE]Pipe {
 				character: rune(c),
 				is_ground: c == '.',
 				is_start:  c == 'S',
-				x:         j,
-				y:         i,
+				x:         i,
+				y:         j,
 			}
 		}
 	}
@@ -56,11 +56,13 @@ func GetMatrixFromLines(lines []string) [MATRIX_SIZE][MATRIX_SIZE]Pipe {
 				if isConnected(matrix, i-1, j, []byte{'F', '7', '|'}) {
 					connections++
 					pipe.top = &matrix[i-1][j]
+					// fmt.Printf("top %s (%d, %d)\n", string(matrix[i-1][j].character), j, i)
 				}
 				// bottom: J, L, |
 				if isConnected(matrix, i+1, j, []byte{'J', 'L', '|'}) {
 					connections++
 					pipe.bottom = &matrix[i+1][j]
+					// fmt.Printf("bottom %s (%d, %d)\n", string(matrix[i+1][j].character), j, i)
 				}
 			case '-':
 				// left: L, F, -
@@ -167,61 +169,64 @@ type PipePath struct {
 
 func findFurthestPipeFromStart(matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe, start_x int, start_y int) int {
 	var max_steps int
-	var pipes_stack []PipePath
+	var pipes_queue []PipePath
 	var current_pipe PipePath
-	pipes_stack = append(pipes_stack, PipePath{
-		pipe:  &matrix[start_y][start_x],
+	pipes_queue = append(pipes_queue, PipePath{
+		pipe:  &matrix[start_x][start_y],
 		steps: 0,
 	})
 
-	for len(pipes_stack) > 0 {
-		current_pipe = pipes_stack[len(pipes_stack)-1]
-		fmt.Printf("current pipe %v\n", current_pipe.pipe)
-		fmt.Printf("current pipe steps %d\n", current_pipe.steps)
-		pipes_stack = removeElementFromSlice(pipes_stack)
+	for len(pipes_queue) > 0 {
+		current_pipe = pipes_queue[0]
+		fmt.Printf("current pipe %s, steps %d\n", string(current_pipe.pipe.character), current_pipe.steps)
+		pipes_queue = removeElementFromSlice(pipes_queue)
 		if current_pipe.pipe.is_ground {
 			continue
 		}
 		if current_pipe.steps > max_steps {
 			max_steps = current_pipe.steps
 		}
-		if current_pipe.pipe.top != nil {
-			next_pipe := matrix[current_pipe.pipe.x-1][current_pipe.pipe.y]
-			pipes_stack = append(pipes_stack, PipePath{
-				pipe:  &next_pipe,
+		if current_pipe.pipe.top != nil && !matrix[current_pipe.pipe.x-1][current_pipe.pipe.y].is_ground {
+			// next_pipe := matrix[current_pipe.pipe.x-1][current_pipe.pipe.y]
+			pipes_queue = append(pipes_queue, PipePath{
+				pipe:  &matrix[current_pipe.pipe.x-1][current_pipe.pipe.y],
 				steps: current_pipe.steps + 1,
 			})
+			fmt.Printf("ADD TOP %s\n", string(matrix[current_pipe.pipe.x-1][current_pipe.pipe.y].character))
 		}
-		if current_pipe.pipe.left != nil {
-			next_pipe := matrix[current_pipe.pipe.x][current_pipe.pipe.y-1]
-			pipes_stack = append(pipes_stack, PipePath{
-				pipe:  &next_pipe,
+		if current_pipe.pipe.left != nil && !matrix[current_pipe.pipe.x][current_pipe.pipe.y-1].is_ground {
+			// next_pipe := matrix[current_pipe.pipe.x][current_pipe.pipe.y-1]
+			pipes_queue = append(pipes_queue, PipePath{
+				pipe:  &matrix[current_pipe.pipe.x][current_pipe.pipe.y-1],
 				steps: current_pipe.steps + 1,
 			})
+			fmt.Printf("ADD LEFT %s\n", string(matrix[current_pipe.pipe.x][current_pipe.pipe.y-1].character))
 		}
-		if current_pipe.pipe.right != nil {
-			next_pipe := matrix[current_pipe.pipe.x][current_pipe.pipe.y+1]
-			pipes_stack = append(pipes_stack, PipePath{
-				pipe:  &next_pipe,
+		if current_pipe.pipe.right != nil && !matrix[current_pipe.pipe.x][current_pipe.pipe.y+1].is_ground {
+			// next_pipe := matrix[current_pipe.pipe.x][current_pipe.pipe.y+1]
+			pipes_queue = append(pipes_queue, PipePath{
+				pipe:  &matrix[current_pipe.pipe.x][current_pipe.pipe.y+1],
 				steps: current_pipe.steps + 1,
 			})
+			fmt.Printf("ADD RIGHT %s\n", string(matrix[current_pipe.pipe.x][current_pipe.pipe.y+1].character))
 		}
-		if current_pipe.pipe.bottom != nil {
-			next_pipe := matrix[current_pipe.pipe.x+1][current_pipe.pipe.y]
-			pipes_stack = append(pipes_stack, PipePath{
-				pipe:  &next_pipe,
+		if current_pipe.pipe.bottom != nil && !matrix[current_pipe.pipe.x+1][current_pipe.pipe.y].is_ground {
+			// next_pipe := matrix[current_pipe.pipe.x+1][current_pipe.pipe.y]
+			pipes_queue = append(pipes_queue, PipePath{
+				pipe:  &matrix[current_pipe.pipe.x+1][current_pipe.pipe.y],
 				steps: current_pipe.steps + 1,
 			})
+			fmt.Printf("ADD BOTTOM %s\n", string(matrix[current_pipe.pipe.x+1][current_pipe.pipe.y].character))
 		}
 		matrix[current_pipe.pipe.x][current_pipe.pipe.y].is_ground = true // visited
-		matrix[current_pipe.pipe.x][current_pipe.pipe.y].character = rune(current_pipe.steps)
+		matrix[current_pipe.pipe.x][current_pipe.pipe.y].character = '.'
 	}
 
 	return max_steps
 }
 
 func removeElementFromSlice[T any](slice []T) []T {
-	return slice[:len(slice)-1]
+	return slice[1:]
 }
 
 func isConnected(matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe, i int, j int, available_conncetions []byte) bool {
@@ -246,11 +251,25 @@ func isConnected(matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe, i int, j int, available_
 func main() {
 	var matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe
 
-	lines := reader.ReadLines("./day10/data/input1_1.txt")
+	lines := reader.ReadLines("./day10/data/input_final.txt")
 	matrix = GetMatrixFromLines(lines)
+
+	for i, row := range matrix {
+		for j, cell := range row {
+			fmt.Printf("%s, %p, %v\n", string(cell.character), &matrix[i][j], cell)
+		}
+	}
 
 	starting_cell := getStartingPoint(matrix)
 	fmt.Printf("starting_cell %v\n", starting_cell)
 	steps := findFurthestPipeFromStart(matrix, starting_cell.x, starting_cell.y)
+
+	for _, row := range matrix {
+		for _, cell := range row {
+			fmt.Printf("%s", string(cell.character))
+		}
+		fmt.Println()
+	}
+
 	fmt.Printf("Further steps in loop are %d\n", steps)
 }
