@@ -187,7 +187,6 @@ func findFurthestPipeFromStart(matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe, start_x in
 			max_steps = current_pipe.steps
 		}
 		if current_pipe.pipe.top != nil && !matrix[current_pipe.pipe.x-1][current_pipe.pipe.y].is_ground {
-			// next_pipe := matrix[current_pipe.pipe.x-1][current_pipe.pipe.y]
 			pipes_queue = append(pipes_queue, PipePath{
 				pipe:  &matrix[current_pipe.pipe.x-1][current_pipe.pipe.y],
 				steps: current_pipe.steps + 1,
@@ -195,7 +194,6 @@ func findFurthestPipeFromStart(matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe, start_x in
 			fmt.Printf("ADD TOP %s\n", string(matrix[current_pipe.pipe.x-1][current_pipe.pipe.y].character))
 		}
 		if current_pipe.pipe.left != nil && !matrix[current_pipe.pipe.x][current_pipe.pipe.y-1].is_ground {
-			// next_pipe := matrix[current_pipe.pipe.x][current_pipe.pipe.y-1]
 			pipes_queue = append(pipes_queue, PipePath{
 				pipe:  &matrix[current_pipe.pipe.x][current_pipe.pipe.y-1],
 				steps: current_pipe.steps + 1,
@@ -203,7 +201,6 @@ func findFurthestPipeFromStart(matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe, start_x in
 			fmt.Printf("ADD LEFT %s\n", string(matrix[current_pipe.pipe.x][current_pipe.pipe.y-1].character))
 		}
 		if current_pipe.pipe.right != nil && !matrix[current_pipe.pipe.x][current_pipe.pipe.y+1].is_ground {
-			// next_pipe := matrix[current_pipe.pipe.x][current_pipe.pipe.y+1]
 			pipes_queue = append(pipes_queue, PipePath{
 				pipe:  &matrix[current_pipe.pipe.x][current_pipe.pipe.y+1],
 				steps: current_pipe.steps + 1,
@@ -211,7 +208,6 @@ func findFurthestPipeFromStart(matrix [MATRIX_SIZE][MATRIX_SIZE]Pipe, start_x in
 			fmt.Printf("ADD RIGHT %s\n", string(matrix[current_pipe.pipe.x][current_pipe.pipe.y+1].character))
 		}
 		if current_pipe.pipe.bottom != nil && !matrix[current_pipe.pipe.x+1][current_pipe.pipe.y].is_ground {
-			// next_pipe := matrix[current_pipe.pipe.x+1][current_pipe.pipe.y]
 			pipes_queue = append(pipes_queue, PipePath{
 				pipe:  &matrix[current_pipe.pipe.x+1][current_pipe.pipe.y],
 				steps: current_pipe.steps + 1,
