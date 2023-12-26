@@ -33,21 +33,19 @@ func CountCombinaitons(spring_line string, spring_map []int) int {
 func CreateCombinations(spring_line string) []string {
 	var combinations []string
 
-	if strings.Index(spring_line, "?") == -1 {
+	idx := strings.Index(spring_line, "?")
+	if idx == -1 {
 		return []string{spring_line}
 	}
 
-	for i := 0; i < len(spring_line); i++ { // this for is useless...
-		if spring_line[i] == '?' {
-			new_line1 := strings.Clone(spring_line)
-			new_line1 = replaceAtIndex(new_line1, '.', i)
-			combinations = append(combinations, CreateCombinations(new_line1)...)
+	if spring_line[idx] == '?' {
+		new_line1 := strings.Clone(spring_line)
+		new_line1 = replaceAtIndex(new_line1, '.', idx)
+		combinations = append(combinations, CreateCombinations(new_line1)...)
 
-			new_line2 := strings.Clone(spring_line)
-			new_line2 = replaceAtIndex(new_line2, '#', i)
-			combinations = append(combinations, CreateCombinations(new_line2)...)
-			break
-		}
+		new_line2 := strings.Clone(spring_line)
+		new_line2 = replaceAtIndex(new_line2, '#', idx)
+		combinations = append(combinations, CreateCombinations(new_line2)...)
 	}
 
 	return combinations
