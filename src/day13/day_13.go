@@ -56,16 +56,12 @@ func rotateMatrix(mat []string) []string {
 }
 
 func findRP(maze []string) int {
-	line_map := make(map[string]int)
-	for i := 0; i < len(maze); i++ {
-		line := maze[i]
-		idx, found := line_map[line]
-		if found && idx == i-1 {
+	for i := 1; i < len(maze); i++ {
+		if maze[i] == maze[i-1] {
 			if isReflection(maze, i) {
 				return i
 			}
 		}
-		line_map[line] = i
 	}
 	return -1
 }
