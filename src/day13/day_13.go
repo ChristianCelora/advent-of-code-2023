@@ -25,21 +25,21 @@ func getMazes(lines []string) [][]string {
 	return mazes
 }
 
-func FindReflectionPoint(maze []string) int {
+func FindReflectionPoint(maze []string) (int, int) {
 	// vertical
 	rotated_maze := rotateMatrix(maze)
-	rp := findRP(rotated_maze)
-	if rp > -1 {
-		return rp
-	}
+	rp := findRP(rotated_maze, 0)
+	rp2 := findRP(rotated_maze, 1)
 
 	// horizontal
-	rp = findRP(maze)
-	if rp > -1 {
-		return rp * 100
+	if rp == -1 {
+		rp = findRP(maze, 0) * 100
+	}
+	if rp2 == -1 {
+		rp2 = findRP(maze, 1) * 100
 	}
 
-	return 0
+	return rp, rp2
 }
 
 func rotateMatrix(mat []string) []string {
@@ -55,10 +55,14 @@ func rotateMatrix(mat []string) []string {
 	return rotated_mat
 }
 
-func findRP(maze []string) int {
+func findRP(maze []string, accepted_diffs int) int {
 	for i := 1; i < len(maze); i++ {
 		if maze[i] == maze[i-1] {
-			if isReflection(maze, i) {
+			if isReflection(maze, i, accepted_diffs) {
+				return i
+			}
+		} else if countStringDiff(maze[i], maze[i-1]) == accepted_diffs {
+			if isReflection(maze, i, accepted_diffs) {
 				return i
 			}
 		}
@@ -66,28 +70,42 @@ func findRP(maze []string) int {
 	return -1
 }
 
-func isReflection(maze []string, rp int) bool {
-	is_reflection := true
+func isReflection(maze []string, rp int, accepted_diffs int) bool {
+	var total_diffs int
 	for j := 0; j < min(rp, len(maze)-rp); j++ {
-		if maze[rp-j-1] != maze[rp+j] {
-			is_reflection = false
+		total_diffs += countStringDiff(maze[rp-j-1], maze[rp+j])
+		if total_diffs > accepted_diffs {
 			break
 		}
 	}
-	return is_reflection
+	return total_diffs == accepted_diffs
+}
+
+func countStringDiff(s1 string, s2 string) int {
+	var n int
+	for i := 0; i < min(len(s1), len(s2)); i++ {
+		if s1[i] != s2[i] {
+			n++
+		}
+	}
+	return n
 }
 
 func main() {
 	var sum_reflection_points int
+	var sum_reflection_points2 int
 	lines := reader.ReadLines("./day13/data/input_final.txt")
 	mazes := getMazes(lines)
 
 	for _, maze := range mazes {
-		reflection_point := FindReflectionPoint(maze)
-		fmt.Printf("reflection point is %d\n", reflection_point)
+		reflection_point, reflection_point2 := FindReflectionPoint(maze)
+		// fmt.Printf("reflection point %d, reflection point2 %d \n", reflection_point, reflection_point2)
 		sum_reflection_points += reflection_point
+		sum_reflection_points2 += reflection_point2
 	}
 
+	// step 1
 	fmt.Printf("the sum of all reflection points is %d\n", sum_reflection_points)
-
+	// step 2
+	fmt.Printf("the sum of all reflection points with smudge is %d\n", sum_reflection_points2)
 }
