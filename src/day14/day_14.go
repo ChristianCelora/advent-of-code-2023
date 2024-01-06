@@ -185,7 +185,7 @@ func main() {
 		fmt.Printf("cicle %d\n", i)
 		// for j := 0; j < 4; j++ {
 		// 	tiltPlatformNorth(&platform)
-		// 	// platform = rotateMatrix(platform)
+		// 	platform = rotateMatrix(platform)
 		// }
 		tiltPlatformNorth(&platform)
 		tiltPlatformWest(&platform)
