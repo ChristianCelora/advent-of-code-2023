@@ -5,21 +5,31 @@ import (
 	"fmt"
 )
 
-func getPlatformMatrix(lines []string) [][]string {
-	var platform [][]string
+const (
+	N = 10 // test
+	// N = 140
+
+	// N_CICLES = 3 // test
+	N_CICLES = 1_000_000 // test
+	// N_CICLES = 1_000_000_000
+)
+
+func getPlatformMatrix(lines []string) [N][N]string {
+	var platform [N][N]string
 
 	for i := 0; i < len(lines); i++ {
-		platform_line := make([]string, 0)
+		// platform_line := make([]string, 0)
 		for j := 0; j < len(lines[i]); j++ {
-			platform_line = append(platform_line, string(lines[i][j]))
+			// platform_line = append(platform_line, string(lines[i][j]))
+			platform[i][j] = string(lines[i][j])
 		}
-		platform = append(platform, platform_line)
+		// platform = append(platform, platform_line)
 	}
 
 	return platform
 }
 
-func tiltPlatformNorth(platform [][]string) {
+func tiltPlatformNorth(platform [N][N]string) {
 	// save top min positions
 	min_free_space := make([]int, len(platform[0]))
 
@@ -39,7 +49,7 @@ func tiltPlatformNorth(platform [][]string) {
 	}
 }
 
-func printPlatform(platform [][]string) {
+func printPlatform(platform [N][N]string) {
 	for i := 0; i < len(platform); i++ {
 		for j := 0; j < len(platform[i]); j++ {
 			fmt.Printf("%s", platform[i][j])
@@ -49,7 +59,7 @@ func printPlatform(platform [][]string) {
 	fmt.Println()
 }
 
-func sumPlatformLoad(platform [][]string) int {
+func sumPlatformLoad(platform [N][N]string) int {
 	var sum_load int
 
 	for i := 0; i < len(platform); i++ {
@@ -63,12 +73,9 @@ func sumPlatformLoad(platform [][]string) int {
 }
 
 // rotate 90 degrees clockwise
-func rotateMatrix(mat [][]string) [][]string {
+func rotateMatrix(mat [N][N]string) [N][N]string {
 	n := len(mat)
-	rotated_mat := make([][]string, len(mat))
-	for i := 0; i < n; i++ {
-		rotated_mat[i] = make([]string, len(mat))
-	}
+	var rotated_mat [N][N]string
 
 	// transpose matrix
 	for i := 0; i < n; i++ {
@@ -90,11 +97,16 @@ func rotateMatrix(mat [][]string) [][]string {
 	return rotated_mat
 }
 
-const (
-	// N_CICLES = 3 // test
-	N_CICLES = 1_000_000 // test
-	// N_CICLES = 1_000_000_000
-)
+func copyMatrix[T any](matrix [N][N]T) [N][N]T {
+	var duplicate [N][N]T
+	for i := range matrix {
+		for j := range matrix[i] {
+			duplicate[i][j] = matrix[i][j]
+		}
+	}
+
+	return duplicate
+}
 
 func main() {
 	lines := reader.ReadLines("./day14/data/input.txt")
@@ -106,15 +118,34 @@ func main() {
 	// fmt.Printf("sum of platform load is %d", sumPlatformLoad(platform))
 
 	// step 2
+	cycle := 0
 	for i := 0; i < N_CICLES; i++ {
-		// fmt.Printf("cicle %d\n", i)
+		fmt.Printf("cicle %d\n", i)
+		// bk_platform := copyMatrix[string](platform)
 		for j := 0; j < 4; j++ {
 			tiltPlatformNorth(platform)
 			platform = rotateMatrix(platform)
 		}
 		// fmt.Printf("platform after cicle %d: \n", i+1)
 		// printPlatform(platform)
+
+		// has_changes := false
+		// for i := 0; i < len(platform); i++ {
+		// 	for j := 0; j < len(platform[i]); j++ {
+		// 		if platform[i][j] != bk_platform[i][j] {
+		// 			has_changes = true
+		// 			break
+		// 		}
+		// 	}
+		// 	if has_changes {
+		// 		break
+		// 	}
+		// }
+		// cycle = i + 1
+		// if !has_changes {
+		// 	break
+		// }
 	}
 	printPlatform(platform)
-	fmt.Printf("sum of platform load is %d\n", sumPlatformLoad(platform))
+	fmt.Printf("sum of platform load after %d cycles is %d\n", cycle, sumPlatformLoad(platform))
 }
