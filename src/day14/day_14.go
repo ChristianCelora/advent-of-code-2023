@@ -3,6 +3,7 @@ package main
 import (
 	"adventcode/reader"
 	"fmt"
+	"slices"
 )
 
 const (
@@ -10,8 +11,8 @@ const (
 	// N = 140
 
 	// N_CICLES = 3 // test
-	// N_CICLES = 1_000_000 // test
-	N_CICLES = 1_000_000_000
+	N_CICLES = 1_000_000 // test
+	// N_CICLES = 1_000_000_000
 )
 
 func getPlatformMatrix(lines []string) [N][N]string {
@@ -122,6 +123,21 @@ func printPlatform(platform [N][N]string) {
 	fmt.Println()
 }
 
+func printPlatformFromObjects(objects []obj) {
+	var printed_mat [N][N]string
+	for i := 0; i < N; i++ {
+		for j := 0; j < N; j++ {
+			printed_mat[i][j] = "."
+		}
+	}
+
+	for _, obj := range objects {
+		printed_mat[obj.x][obj.y] = string(obj.symbol)
+	}
+
+	printPlatform(printed_mat)
+}
+
 func sumPlatformLoad(platform [N][N]string) int {
 	var sum_load int
 
@@ -171,27 +187,187 @@ func copyMatrix[T any](matrix [N][N]T) [N][N]T {
 	return duplicate
 }
 
+type obj struct {
+	symbol byte
+	x      int
+	y      int
+}
+
+func sumObjectsLoad(objects []obj, max_load int) int {
+	var sum_load int
+
+	for _, obj := range objects {
+		if obj.symbol == 'O' {
+			sum_load += max_load - obj.x
+		}
+	}
+
+	return sum_load
+}
+
+func tiltPlatformNorthFaster(objects []obj) {
+	// divide each column
+	var columns [N][]*obj
+	for i := 0; i < len(objects); i++ {
+		columns[objects[i].y] = append(columns[objects[i].y], &objects[i])
+	}
+
+	// sort by x asc
+	for _, column_objs := range columns {
+		slices.SortFunc(column_objs, func(a, b *obj) int {
+			return a.x - b.x
+		})
+	}
+
+	// move the objects based on free_position
+	for _, column_objs := range columns {
+		free_position := 0
+		for _, obj := range column_objs {
+			if obj.symbol == '#' {
+				free_position = obj.x + 1
+			} else if obj.symbol == 'O' {
+				obj.x = free_position
+				free_position++
+			}
+		}
+	}
+}
+
+func tiltPlatformSouthFaster(objects []obj) {
+	// divide each column
+	var columns [N][]*obj
+	for i := 0; i < len(objects); i++ {
+		columns[objects[i].y] = append(columns[objects[i].y], &objects[i])
+	}
+
+	// sort by x desc
+	for _, column_objs := range columns {
+		slices.SortFunc(column_objs, func(a, b *obj) int {
+			return b.x - a.x
+		})
+	}
+
+	// move the objects based on free_position
+	for _, column_objs := range columns {
+		free_position := N - 1
+		for _, obj := range column_objs {
+			if obj.symbol == '#' {
+				free_position = obj.x - 1
+			} else if obj.symbol == 'O' {
+				obj.x = free_position
+				free_position--
+			}
+		}
+	}
+}
+
+func tiltPlatformEastFaster(objects []obj) {
+	// divide each row
+	var rows [N][]*obj
+	for i := 0; i < len(objects); i++ {
+		rows[objects[i].x] = append(rows[objects[i].x], &objects[i])
+	}
+
+	// sort by y desc
+	for _, row_objs := range rows {
+		slices.SortFunc(row_objs, func(a, b *obj) int {
+			return b.y - a.y
+		})
+	}
+
+	// move the objects based on free_position
+	for _, column_objs := range rows {
+		free_position := N - 1
+		for _, obj := range column_objs {
+			if obj.symbol == '#' {
+				free_position = obj.y - 1
+			} else if obj.symbol == 'O' {
+				obj.y = free_position
+				free_position--
+			}
+		}
+	}
+}
+
+func tiltPlatformWestFaster(objects []obj) {
+	// divide each row
+	var rows [N][]*obj
+	for i := 0; i < len(objects); i++ {
+		rows[objects[i].x] = append(rows[objects[i].x], &objects[i])
+	}
+
+	// sort by y asc
+	for _, row_objs := range rows {
+		slices.SortFunc(row_objs, func(a, b *obj) int {
+			return a.y - b.y
+		})
+	}
+
+	// move the objects based on free_position
+	for _, column_objs := range rows {
+		free_position := 0
+		for _, obj := range column_objs {
+			if obj.symbol == '#' {
+				free_position = obj.y + 1
+			} else if obj.symbol == 'O' {
+				obj.y = free_position
+				free_position++
+			}
+		}
+	}
+}
+
 func main() {
 	lines := reader.ReadLines("./day14/data/input.txt")
 	platform := getPlatformMatrix(lines)
 	fmt.Printf("platform: \n")
-	printPlatform(platform)
 	// step 1
-	// tiltPlatformNorth(platform)
-	// fmt.Printf("sum of platform load is %d", sumPlatformLoad(platform))
+	tiltPlatformNorth(&platform)
+	printPlatform(platform)
+	fmt.Printf("sum of platform load is %d\n", sumPlatformLoad(platform))
+
+	// // step 2
+	// for i := 0; i < N_CICLES; i++ {
+	// 	fmt.Printf("cicle %d\n", i)
+	// 	// for j := 0; j < 4; j++ {
+	// 	// 	tiltPlatformNorth(&platform)
+	// 	// 	platform = rotateMatrix(platform)
+	// 	// }
+	// 	tiltPlatformNorth(&platform)
+	// 	tiltPlatformWest(&platform)
+	// 	tiltPlatformSouth(&platform)
+	// 	tiltPlatformEast(&platform)
+	// }
+	// // printPlatform(platform)
+	// fmt.Printf("sum of platform load after %d cycles is %d\n", N_CICLES, sumPlatformLoad(platform))
+
+	// solution 2 - do not consider the empty space
+	var objects []obj
+	for i := 0; i < len(lines); i++ {
+		for j := 0; j < len(lines[i]); j++ {
+			if lines[i][j] == '#' || lines[i][j] == 'O' {
+				objects = append(objects, obj{
+					symbol: lines[i][j],
+					x:      i,
+					y:      j,
+				})
+			}
+		}
+	}
+
+	// step 1
+	// tiltPlatformNorthFaster(objects)
+	// printPlatformFromObjects(objects)
+	// fmt.Printf("sum of platform load is %d\n", sumObjectsLoad(objects, N))
 
 	// step 2
 	for i := 0; i < N_CICLES; i++ {
 		fmt.Printf("cicle %d\n", i)
-		// for j := 0; j < 4; j++ {
-		// 	tiltPlatformNorth(&platform)
-		// 	platform = rotateMatrix(platform)
-		// }
-		tiltPlatformNorth(&platform)
-		tiltPlatformWest(&platform)
-		tiltPlatformSouth(&platform)
-		tiltPlatformEast(&platform)
+		tiltPlatformNorthFaster(objects)
+		tiltPlatformWestFaster(objects)
+		tiltPlatformSouthFaster(objects)
+		tiltPlatformEastFaster(objects)
+		// printPlatformFromObjects(objects)
 	}
-	// printPlatform(platform)
-	fmt.Printf("sum of platform load after %d cycles is %d\n", N_CICLES, sumPlatformLoad(platform))
+	fmt.Printf("sum of platform load is %d\n", sumObjectsLoad(objects, N))
 }
