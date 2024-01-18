@@ -7,6 +7,7 @@ import (
 
 const (
 	// N = 10 // test
+	// N = 17 // test
 	N = 110
 )
 
@@ -75,44 +76,54 @@ func isMirror(c Cell) bool {
 	return c.symbol == '/' || c.symbol == '\\'
 }
 
-func main() {
-	var sum_energized_cells int
-	var beam Beam
-	lines := reader.ReadLines("./day16/data/input_final.txt")
-	matrix := createMatrix(lines)
-	beams := []Beam{
-		{0, 0, 0, 1},
+func getStartingBeam(dir int, idx int) Beam {
+	var b Beam
+
+	if dir == 0 { // top
+		b = Beam{0, idx, 1, 0}
+	} else if dir == 1 { // right
+		b = Beam{idx, N - 1, 0, -1}
+	} else if dir == 2 { // bottom
+		b = Beam{N - 1, idx, -1, 0}
+	} else if dir == 3 { // left
+		b = Beam{idx, 0, 0, 1}
 	}
-	matrix[0][0].energized = true
+
+	return b
+}
+
+func energizeCells(matrix *[N][N]Cell, starting_beam Beam) {
+	var beam Beam
+	beams := []Beam{
+		starting_beam,
+	}
+	// matrix[starting_beam.x][starting_beam.y].energized = true
 
 	for len(beams) > 0 {
 		// pop beam
 		beam = beams[len(beams)-1]
 		beams = beams[:len(beams)-1]
-		fmt.Printf("\nbeam %v, beams len %d\n", beam, len(beams))
+		// fmt.Printf("\nbeam %v, beams len %d\n", beam, len(beams))
 
-		// move beam
 		for beam.x >= 0 && beam.x < N && beam.y >= 0 && beam.y < N {
-			beam.x += int(beam.dir_x)
-			beam.y += int(beam.dir_y)
 
 			// if out-of-bounds pass to next beam
-			if beam.x < 0 || beam.x >= N || beam.y < 0 || beam.y >= N {
-				fmt.Printf("beam out of bounds\n")
+			/*if beam.x < 0 || beam.x >= N || beam.y < 0 || beam.y >= N {
+				// fmt.Printf("beam out of bounds\n")
 				break
-			}
+			}*/
 
 			if matrix[beam.x][beam.y].isVisited(beam.dir_x, beam.dir_y) {
-				fmt.Printf("alredy visited\n")
+				// fmt.Printf("alredy visited\n")
 				break
 			}
 
-			fmt.Printf("cell %s, visited %v: (%d, %d)\n", string(matrix[beam.x][beam.y].symbol), matrix[beam.x][beam.y].visited, beam.x, beam.y)
+			// fmt.Printf("cell %s, visited %v: (%d, %d)\n", string(matrix[beam.x][beam.y].symbol), matrix[beam.x][beam.y].visited, beam.x, beam.y)
 			matrix[beam.x][beam.y].energized = true
 			matrix[beam.x][beam.y].setVisited(beam.dir_x, beam.dir_y)
 
 			if isSplitter(matrix[beam.x][beam.y]) {
-				fmt.Printf("splitter found %s (%d, %d)\n", string(matrix[beam.x][beam.y].symbol), beam.x, beam.y)
+				// fmt.Printf("splitter found %s (%d, %d)\n", string(matrix[beam.x][beam.y].symbol), beam.x, beam.y)
 				if matrix[beam.x][beam.y].symbol == '|' {
 					// check if opposite direction
 					if beam.dir_y == 1 || beam.dir_y == -1 {
@@ -151,8 +162,8 @@ func main() {
 			}
 
 			if isMirror(matrix[beam.x][beam.y]) {
-				fmt.Printf("mirror found %s (%d, %d)\n", string(matrix[beam.x][beam.y].symbol), beam.x, beam.y)
-				// fmt.Printf("old direction (%d, %d)\n", beam.dir_x, beam.dir_y)
+				// fmt.Printf("mirror found %s (%d, %d)\n", string(matrix[beam.x][beam.y].symbol), beam.x, beam.y)
+
 				if matrix[beam.x][beam.y].symbol == '\\' {
 					if beam.dir_x == 1 || beam.dir_x == -1 {
 						beam.dir_y = beam.dir_x
@@ -170,18 +181,51 @@ func main() {
 						beam.dir_y = 0
 					}
 				}
-				// fmt.Printf("new direction (%d, %d)\n", beam.dir_x, beam.dir_y)
+
+			}
+
+			// move beam
+			beam.x += int(beam.dir_x)
+			beam.y += int(beam.dir_y)
+		}
+	}
+}
+
+func main() {
+	var sum_energized_cells int
+	var max_sum_energized_cells int
+	var max_starting_pos [2]int
+	var beam Beam
+	lines := reader.ReadLines("./day16/data/input_final.txt")
+	for i := 0; i < 4; i++ {
+		for j := 0; j < N; j++ {
+			matrix := createMatrix(lines)
+			// beam = Beam{0, 0, 0, 1}
+			fmt.Printf("\nStarting beam %v\n", beam)
+			beam = getStartingBeam(i, j)
+			energizeCells(&matrix, beam)
+
+			sum_energized_cells = 0
+			for _, row := range matrix {
+				for _, cell := range row {
+					if cell.energized {
+						sum_energized_cells++
+					}
+				}
+			}
+			fmt.Printf("Energized cells %d\n", sum_energized_cells)
+
+			if sum_energized_cells > max_sum_energized_cells {
+				max_starting_pos = [2]int{beam.x, beam.y}
+				max_sum_energized_cells = sum_energized_cells
+			}
+
+			// part 1
+			if beam.x == 0 && beam.y == 0 {
+				fmt.Printf("Sum of energized cells from top-left corner is %d\n", sum_energized_cells)
 			}
 		}
 	}
-
-	for _, row := range matrix {
-		for _, cell := range row {
-			if cell.energized {
-				sum_energized_cells++
-			}
-		}
-	}
-
-	fmt.Printf("Sum of energized cells is %d\n", sum_energized_cells)
+	// part 2
+	fmt.Printf("Max sum of energized cells is %d, from position (%d, %d)\n", max_sum_energized_cells, max_starting_pos[0], max_starting_pos[1])
 }
