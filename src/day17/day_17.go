@@ -100,10 +100,14 @@ func main() {
 			}
 
 			neighbour := &matrix[node.x+directions[i][0]][node.y+directions[i][1]]
+			fmt.Printf("neighbour (%d, %d)\n", neighbour.x, neighbour.y)
 			if neighbour.visited {
+				fmt.Printf("neighbour visited\n")
 				continue
 			}
 			sum_loss := node.distance + neighbour.loss
+			fmt.Printf("new sum_loss %d, neighbour distance: %d, straight %d\n", sum_loss, neighbour.distance, CountStraightLine(*neighbour))
+
 			if sum_loss < neighbour.distance {
 				// if CountStraightLine(*neighbour) >= 4 {
 				// 	fmt.Printf("straight longer than 4 tiles\n")
@@ -114,10 +118,10 @@ func main() {
 				old_distance := neighbour.distance
 				neighbour.distance = sum_loss
 				neighbour.prev = &matrix[node.x][node.y]
-				if CountStraightLine(*neighbour) >= 4 {
+				if CountStraightLine(*neighbour) > 4 {
 					neighbour.distance = old_distance
 					neighbour.prev = old_prev
-					fmt.Printf("straight longer than 4 tiles\n")
+					fmt.Printf("straight longer than 4 tiles neighbour (%d, %d)\n", neighbour.x, neighbour.y)
 					continue
 				}
 				fmt.Printf("connecting node (%d, %d) to neighbour (%d, %d)\n", node.x, node.y, neighbour.x, neighbour.y)
@@ -130,10 +134,6 @@ func main() {
 					fmt.Printf("old nodes %v\n", nodes)
 					for i := 0; i < len(nodes); i++ {
 						if neighbour.distance > nodes[i].distance {
-							// bk_nodes := nodes[i:]
-							// nodes = append(nodes[0:i], *neighbour)
-							// nodes = append(nodes, bk_nodes...)
-
 							nodes = append(nodes[0:i+1], nodes[i:]...)
 							nodes[i] = *neighbour
 							appended = true
